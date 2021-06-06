@@ -20,16 +20,25 @@ class BinanceAPI(object):
         self.key = key
         self.secret = secret
 
+    def timestamp_to_date(self, ts_minsecond):
+        try:
+            ts_minsecond = int(ts_minsecond)
+            time_local = time.localtime(int(ts_minsecond / 1000))
+            dt = time.strftime("%Y-%m-%d %H:%M:%S", time_local)
+            return dt
+        except Exception as e:
+            print(e)
+
     def ping(self):
         path = "%s/ping" % self.BASE_URL_V3
         return requests.get(path, timeout=180, verify=True).json()
 
-    def get_ticker_price(self,market):
+    def get_spot_ticker_data(self,market):
         path = "%s/ticker/price" % self.BASE_URL_V3
         params = {"symbol":market}
         res =  self._get_no_sign(path,params)
-        time.sleep(2)
-        return float(res['price'])
+        # time.sleep(2)
+        return res
 
     def get_ticker_24hour(self,market):
         path = "%s/ticker/24hr" % self.BASE_URL_V3
@@ -37,13 +46,13 @@ class BinanceAPI(object):
         res =  self._get_no_sign(path,params)
         return res
 
-    def get_klines(self, market, interval, startTime=None, endTime=None):
+    def get_spot_klines(self, market, interval, startTime=None, endTime=None, limit=500):
         path = "%s/klines" % self.BASE_URL_V3
         params = None
         if startTime is None:
-            params = {"symbol": market, "interval":interval}    
+            params = {"symbol": market, "interval":interval, 'limit': limit}
         else:    
-            params = {"symbol": market, "interval":interval, "startTime":startTime, "endTime":endTime}
+            params = {"symbol": market, "interval":interval, "startTime":startTime, "endTime":endTime, 'limit': limit}
         return self._get_no_sign(path, params)
 
     def buy_limit(self, market, quantity, rate):
@@ -57,6 +66,23 @@ class BinanceAPI(object):
         return self._post(path, params)
 
     ### --- 合约 --- ###
+    def get_future_ticker_data(self,market):
+        path = "%s/fapi/v1/ticker/price" % self.FUTURE_URL
+        params = {"symbol":market}
+        res =  self._get_no_sign(path,params)
+        # time.sleep(2)
+        return res
+
+    def get_future_klines(self, market, interval, contracttype = 'PERPETUAL', startTime=None, endTime=None, limit=500):
+        path = "%s/fapi/v1/continuousKlines" % self.FUTURE_URL
+        params = None
+        if startTime is None:
+            params = {"pair": market, 'contractType': contracttype, "interval": interval, 'limit': limit}
+        else:
+            params = {"pair": market, 'contractType': contracttype, "interval": interval, "startTime": startTime,
+                      "endTime": endTime, 'limit': limit}
+        return self._get_no_sign(path, params)
+
     def set_leverage(self,symbol, leverage):
         
         ''' 调整开仓杠杆
@@ -106,7 +132,8 @@ class BinanceAPI(object):
     def _get_no_sign(self, path, params={}):
         query = urlencode(params)
         url = "%s?%s" % (path, query)
-        return requests.get(url, timeout=180, verify=True).json()
+        return requests.get(url, timeout=180, verify=True,
+                            proxies={'http':'127.0.0.1:7890','https':'127.0.0.1:7890'}).json()
 
     def _sign(self, params={}):
         data = params.copy()
