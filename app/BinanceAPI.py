@@ -29,6 +29,14 @@ class BinanceAPI(object):
         except Exception as e:
             print(e)
 
+    def Bolinger_Bands(self, stock_price, window_size, num_of_std):
+
+        rolling_mean = stock_price.rolling(window=window_size).mean()
+        rolling_std = stock_price.rolling(window=window_size).std()
+        upper_band = rolling_mean + (rolling_std * num_of_std)
+        lower_band = rolling_mean - (rolling_std * num_of_std)
+        return rolling_mean, upper_band, lower_band
+
     def ping(self):
         path = "%s/ping" % self.BASE_URL_V3
         return requests.get(path, timeout=180, verify=True).json()
