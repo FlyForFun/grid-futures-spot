@@ -109,7 +109,7 @@ class BinanceAPI(object):
             :param quantity: 购买量
             :param price: 开仓价格
         '''
-        path = "%s/fapi/v1/order" % self.FUTURE_URL
+        path = "%s/fapi/v1/order/test" % self.FUTURE_URL
         params = self._order(market, quantity, side, price)
         return self._post(path, params)
 
