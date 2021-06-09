@@ -141,7 +141,7 @@ class BinanceAPI(object):
         query = urlencode(params)
         url = "%s?%s" % (path, query)
         return requests.get(url, timeout=180, verify=True,
-                            proxies={'http':'127.0.0.1:7890','https':'127.0.0.1:7890'}).json()
+                            proxies={'http':'http://127.0.0.1:7890','https':'http://127.0.0.1:7890'}).json()
 
     def _sign(self, params={}):
         data = params.copy()
